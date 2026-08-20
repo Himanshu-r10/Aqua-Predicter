@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaPredict - Smart India Hackathon | Ground Water Level Predictor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 500: '#0ea5e9', 600: '#0284c7' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#080e1a] text-slate-100 antialiased selection:bg-cyan-500 selection:text-white">
+    <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-cyan-900 border-b border-cyan-500/20 py-2 px-4 text-xs">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span class="bg-orange-500 text-white font-extrabold px-2 py-0.5 rounded text-[10px] tracking-wider uppercase">SIH Grand Finale</span>
+                <span class="text-cyan-200 font-medium">Problem Statement ID: <strong class="text-white">SIH-1428</strong></span>
+                <span class="hidden md:inline text-slate-400">|</span>
+                <span class="hidden md:inline text-slate-300">Ministry of Jal Shakti & Central Ground Water Board (CGWB)</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 text-emerald-400 font-mono">
+                    <span class="pulse-indicator bg-emerald-400"></span> 7,420 DWLR Telemetry Nodes Online
+                </span>
+                <button onclick="window.printSIHReport()" class="hidden sm:inline-flex items-center gap-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 px-2.5 py-0.5 rounded border border-cyan-500/30 transition text-[11px]">
+                    <i data-lucide="printer" class="w-3 h-3"></i> Export Dossier PDF
+                </button>
+            </div>
+        </div>
+    </div>
+    <nav class="sticky top-0 z-50 bg-[#080e1a]/85 backdrop-blur-md border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="#" class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
+                        <i data-lucide="droplets" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-cyan-200 to-cyan-400 bg-clip-text text-transparent">AQUA-PREDICT</span>
+                            <span class="text-[10px] font-bold bg-cyan-900/60 text-cyan-300 border border-cyan-700/50 px-1.5 py-0.5 rounded">AI v2.4</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-mono tracking-wide">Ground Water Level Predictor &bull; SIH Project</p>
+                    </div>
+                </a>
+                <div class="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-300">
+                    <a href="#problem" class="hover:text-cyan-400 transition">Problem Statement</a>
+                    <a href="#predictor" class="hover:text-cyan-400 transition">AI Predictor</a>
+                    <a href="#gis-map" class="hover:text-cyan-400 transition">Aquifer GIS Map</a>
+                    <a href="#analytics" class="hover:text-cyan-400 transition">Hydrographs</a>
+                    <a href="#telemetry-simulator" class="hover:text-cyan-400 transition">DWLR Telemetry</a>
+                    <a href="#architecture" class="hover:text-cyan-400 transition">ML Architecture</a>
+                    <a href="#team" class="hover:text-cyan-400 transition">Team</a>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="#predictor" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-md shadow-cyan-500/20 transition flex items-center gap-1.5">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i> Run AI Simulation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative pt-12 pb-20 overflow-hidden">
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-cyan-600/15 via-blue-600/10 to-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-300 text-xs font-medium">
+                        <i data-lucide="award" class="w-4 h-4 text-cyan-400"></i>
+                        <span>Smart India Hackathon Innovation Showcase</span>
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white">
+                        AI-Powered <span class="bg-gradient-to-r from-cyan-400 via-blue-300 to-indigo-300 bg-clip-text text-transparent">Ground Water Level</span> Predictor & Aquifer Intelligence
+                    </h1>
+                    <p class="text-base sm:text-lg text-slate-300 leading-relaxed font-normal">
+                        Empowering the <strong>Ministry of Jal Shakti</strong> & <strong>CGWB</strong> with predictive deep learning, combining real-time IoT Digital Water Level Recorders (DWLR), NASA GRACE satellite gravity data, Sentinel-2 soil moisture, and gridded rainfall models to predict groundwater tables up to 36 months ahead.
+                    </p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                        <div class="glass-card p-3 rounded-xl border border-slate-800">
+                            <div class="text-xl font-extrabold text-cyan-400 font-mono">94.8%</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Forecast Accuracy</div>
+                        </div>
+                        <div class="glass-card p-3 rounded-xl border border-slate-800">
+                            <div class="text-xl font-extrabold text-blue-400 font-mono">1-36 Mo</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Prediction Horizon</div>
+                        </div>
+                        <div class="glass-card p-3 rounded-xl border border-slate-800">
+                            <div class="text-xl font-extrabold text-emerald-400 font-mono">10,000+</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">DWLR Wells Tracked</div>
+                        </div>
+                        <div class="glass-card p-3 rounded-xl border border-slate-800">
+                            <div class="text-xl font-extrabold text-indigo-400 font-mono">4 SDGs</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">UN Impact Targets</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-4 pt-4">
+                        <a href="#predictor" class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-cyan-500/25 transition flex items-center gap-2">
+                            <i data-lucide="play" class="w-4 h-4 fill-white"></i> Launch Prediction Engine
+                        </a>
+                        <a href="#gis-map" class="px-6 py-3 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 font-semibold text-sm rounded-xl border border-slate-700 transition flex items-center gap-2">
+                            <i data-lucide="map" class="w-4 h-4 text-cyan-400"></i> Explore Aquifer GIS
+                        </a>
+                    </div>
+                </div>
+                <div class="lg:col-span-5">
+                    <div class="glass-card rounded-2xl p-6 border border-cyan-500/30 relative overflow-hidden cyan-glow">
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                            <div class="flex items-center gap-2">
+                                <span class="pulse-indicator bg-rose-500"></span>
+                                <span class="text-xs font-semibold text-slate-200 uppercase tracking-wider">Live Aquifer Telemetry</span>
+                            </div>
+                            <span class="text-[11px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800">DWLR-RJ-042</span>
+                        </div>
+                        <div class="py-5 space-y-4">
+                            <div>
+                                <div class="text-xs text-slate-400">Monitoring Station Location</div>
+                                <div class="text-base font-bold text-white flex items-center gap-1.5 mt-0.5">
+                                    <i data-lucide="map-pin" class="w-4 h-4 text-rose-400"></i> Jaipur Central Aquifer, Rajasthan
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                                <div>
+                                    <span class="text-xs text-slate-400">Water Depth</span>
+                                    <div class="text-2xl font-black text-cyan-400 font-mono mt-0.5">31.45 <span class="text-xs font-normal text-slate-400">mbgl</span></div>
+                                    <span class="text-[10px] text-rose-400 flex items-center gap-1 mt-1 font-medium">
+                                        <i data-lucide="trending-down" class="w-3 h-3"></i> -0.82 m/yr depletion
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-slate-400">Risk Assessment</span>
+                                    <div class="mt-1">
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-extrabold uppercase badge-overexploited inline-block">
+                                            Over-Exploited
+                                        </span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 mt-2 block font-mono">Stage: 145% Extraction</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 pt-1 text-center font-mono">
+                                <div class="p-2 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                                    <span class="text-[10px] text-slate-400 block">Water Temp</span>
+                                    <span class="text-xs font-semibold text-slate-200">24.2°C</span>
+                                </div>
+                                <div class="p-2 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                                    <span class="text-[10px] text-slate-400 block">Battery</span>
+                                    <span class="text-xs font-semibold text-emerald-400">94%</span>
+                                </div>
+                                <div class="p-2 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                                    <span class="text-[10px] text-slate-400 block">Conductivity</span>
+                                    <span class="text-xs font-semibold text-cyan-300">1,250 &mu;S</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                            <span class="flex items-center gap-1.5">
+                                <i data-lucide="cpu" class="w-3.5 h-3.5 text-cyan-400"></i> AI TFT Forecast: 32.2m by Oct
+                            </span>
+                            <a href="#telemetry-simulator" class="text-cyan-400 hover:underline flex items-center gap-1 font-medium">
+                                Telemetry Stream <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- National Crisis Ticker -->
+    <section class="bg-slate-900/90 border-y border-slate-800 py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap items-center justify-between gap-6 text-sm">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-lg bg-rose-500/10 text-rose-400">
+                        <i data-lucide="alert-octagon" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-white">National Groundwater Crisis Context</div>
+                        <div class="text-xs text-slate-400">CGWB Dynamic Groundwater Resource Assessment Report</div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-6 text-xs font-mono">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                        <span class="text-slate-300">Over-Exploited Blocks: <strong class="text-rose-400 font-bold">1,114 (17%)</strong></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                        <span class="text-slate-300">Critical/Semi-Critical: <strong class="text-amber-400 font-bold">960 (14%)</strong></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
+                        <span class="text-slate-300">Annual Extraction: <strong class="text-cyan-400 font-bold">245.38 BCM</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 1: SIH Problem Statement -->
+    <section id="problem" class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-extrabold uppercase tracking-widest text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-800/60">
+                    Smart India Hackathon Challenge Dossier
+                </span>
+                <h2 class="text-3xl font-extrabold text-white mt-4">Understanding the Problem Statement</h2>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">
+                    Why automated, AI-driven spatio-temporal groundwater forecasting is vital for India's food security, rural drinking water, and climate resilience.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 glass-card-hover space-y-4">
+                    <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center">
+                        <i data-lucide="x-circle" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Traditional Monitoring Limitations</h3>
+                    <p class="text-slate-300 text-xs leading-relaxed">
+                        Historically, groundwater levels across India were manually tape-measured only 4 times a year. This creates massive temporal blind spots, delayed reporting by 6-12 months, and zero early-warning capabilities before borewells dry up.
+                    </p>
+                    <ul class="text-xs text-slate-400 space-y-2 border-t border-slate-800 pt-3">
+                        <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-rose-400"></i> Sparse quarterly manual readings</li>
+                        <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-rose-400"></i> Zero early-warning forecasting</li>
+                        <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-rose-400"></i> High human labor & telemetry gaps</li>
+                    </ul>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border border-cyan-500/40 glass-card-hover space-y-4 bg-gradient-to-b from-cyan-950/20 to-transparent">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                        <i data-lucide="sparkles" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">AquaPredict AI Innovation</h3>
+                    <p class="text-slate-300 text-xs leading-relaxed">
+                        AquaPredict builds an automated multi-source hydrological pipeline. By ingesting 15-minute DWLR sensor telemetry, NASA GRACE satellite gravity field anomalies, Sentinel-2 soil moisture indices, and IMD gridded rainfall, our deep learning engine forecasts aquifer depths up to 3 years in advance.
+                    </p>
+                    <ul class="text-xs text-slate-300 space-y-2 border-t border-slate-800 pt-3">
+                        <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-cyan-400"></i> Real-time continuous DWLR sync</li>
+                        <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-cyan-400"></i> Temporal Fusion Transformer (TFT) AI</li>
+                        <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-cyan-400"></i> 1 to 36-month predictive horizons</li>
+                    </ul>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 glass-card-hover space-y-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Governance & Field Impact</h3>
+                    <p class="text-slate-300 text-xs leading-relaxed">
+                        Translates raw complex hydrogeological data into actionable policy recommendations: automated SMS alerts to farmers for precision crop water-budgeting, optimal sites for artificial recharge shafts (Atal Bhujal Yojana), and dynamic extraction licensing for CGWA authorities.
+                    </p>
+                    <ul class="text-xs text-slate-400 space-y-2 border-t border-slate-800 pt-3">
+                        <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Atal Bhujal Yojana synergy</li>
+                        <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Crop diversification advisories</li>
+                        <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Groundwater budget compliance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Interactive AI Groundwater Level Predictor Tool -->
+    <section id="predictor" class="py-20 bg-slate-900/40 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-xs font-extrabold uppercase tracking-widest text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-800/60">
+                    Live AI Simulation Engine
+                </span>
+                <h2 class="text-3xl font-extrabold text-white mt-4">Ground Water Level Predictor Simulator</h2>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">
+                    Select a state, district, hydrological season, rainfall, and extraction parameters to simulate predicted water table depth (mbgl) and receive tailored AI conservation advisories.
+                </p>
+                <div class="flex flex-wrap items-center justify-center gap-2 mt-6">
+                    <span class="text-xs text-slate-400 mr-1 font-medium">Quick Presets:</span>
+                    <button id="preset-punjab" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-rose-300 text-xs rounded-lg border border-rose-500/30 transition">
+                        🌾 Punjab (Over-Exploited)
+                    </button>
+                    <button id="preset-rajasthan" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs rounded-lg border border-amber-500/30 transition">
+                        🏜️ Rajasthan (Arid Hard-Rock)
+                    </button>
+                    <button id="preset-up" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs rounded-lg border border-emerald-500/30 transition">
+                        🌊 UP Gangetic Plain (Safe)
+                    </button>
+                    <button id="preset-karnataka" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs rounded-lg border border-cyan-500/30 transition">
+                        🏙️ Bengaluru / Kolar (Critical)
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-7 glass-card p-6 sm:p-8 rounded-2xl border border-slate-800 space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="sliders" class="w-5 h-5 text-cyan-400"></i>
+                            <h3 class="text-base font-bold text-white">Hydrological & Environmental Parameters</h3>
+                        </div>
+                        <span class="text-xs text-slate-400 font-mono">Model: TFT-Ensemble-v2.4</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">State / UT</label>
+                            <select id="stateSelect" class="w-full bg-slate-800/90 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 transition">
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">District / Assessment Unit</label>
+                            <select id="districtSelect" class="w-full bg-slate-800/90 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 transition">
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Monitoring Season</label>
+                            <select id="seasonSelect" class="w-full bg-slate-800/90 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 transition">
+                                <option value="Pre-Monsoon (Summer May-Jun)">Pre-Monsoon (Summer May-Jun)</option>
+                                <option value="Monsoon (Jul-Sep)">Monsoon (Jul-Sep)</option>
+                                <option value="Post-Monsoon (Oct-Nov)">Post-Monsoon (Oct-Nov)</option>
+                                <option value="Winter / Rabi Season (Dec-Feb)">Winter / Rabi Season (Dec-Feb)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Soil Texture Profile</label>
+                            <select id="soilSelect" class="w-full bg-slate-800/90 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 transition">
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1.5">
+                            <span class="font-semibold text-slate-300">Annual / Seasonal Precipitation (mm)</span>
+                            <span id="rainfallVal" class="font-mono text-cyan-400 font-bold">650 mm</span>
+                        </div>
+                        <input type="range" id="rainfallInput" min="150" max="3200" step="25" value="650" class="w-full accent-cyan-400 bg-slate-700 h-2 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                            <span>150 mm (Arid)</span>
+                            <span>1000 mm (Normal)</span>
+                            <span>3200 mm (Heavy Monsoon)</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1.5">
+                            <span class="font-semibold text-slate-300">Stage of Groundwater Extraction (% of Recharge)</span>
+                            <span id="extractionVal" class="font-mono text-rose-400 font-bold">145 %</span>
+                        </div>
+                        <input type="range" id="extractionInput" min="20" max="220" step="5" value="145" class="w-full accent-rose-500 bg-slate-700 h-2 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                            <span class="text-emerald-400">&lt; 70% Safe</span>
+                            <span class="text-amber-400">90% Semi-Critical</span>
+                            <span class="text-rose-400">&gt; 100% Over-Exploited</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Aquifer Lithology</label>
+                            <select id="aquiferSelect" class="w-full bg-slate-800/90 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 transition">
+                                <option value="Deep Indo-Gangetic Alluvium">Deep Indo-Gangetic Alluvium</option>
+                                <option value="Hard Rock Granitic Gneiss">Hard Rock Granitic Gneiss</option>
+                                <option value="Basaltic Deccan Traps">Basaltic Deccan Traps</option>
+                                <option value="Coastal Alluvial Sandstone">Coastal Alluvial Sandstone</option>
+                                <option value="Crystalline Fractured Rock">Crystalline Fractured Rock</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Artificial Recharge Interventions</label>
+                            <select id="rechargeSelect" class="w-full bg-slate-800/90 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 transition">
+                                <option value="None">None (Natural Infiltration Only)</option>
+                                <option value="Check Dams & Farm Ponds">Check Dams & Farm Ponds (-1.6m)</option>
+                                <option value="Rooftop Rainwater Harvesting Mandate">Rooftop Rainwater Harvesting (-1.1m)</option>
+                                <option value="Deep Injection Wells & Shafts">Deep Injection Wells & Shafts (-2.4m)</option>
+                                <option value="Integrated Watershed Management (Comprehensive)">Integrated Watershed Management (-3.5m)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="predictBtn" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-cyan-500/25 transition flex items-center justify-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Run Spatio-Temporal Prediction Model
+                    </button>
+                </div>
+
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="glass-card p-6 rounded-2xl border border-cyan-500/30 relative">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Predicted Aquifer Depth</span>
+                            <span id="resultCategory" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider badge-overexploited">
+                                Over-Exploited
+                            </span>
+                        </div>
+
+                        <div class="my-4">
+                            <div class="text-xs text-slate-400">Predicted Depth Below Ground Level (mbgl)</div>
+                            <div class="flex items-baseline gap-2 mt-1">
+                                <span id="resultDepth" class="text-4xl font-black text-white font-mono">28.45 m</span>
+                                <span class="text-xs text-slate-400">&plusmn; 0.42m error margin</span>
+                            </div>
+                            <div class="text-xs font-medium text-cyan-400 mt-1 flex items-center gap-1">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> <span id="resultLocation">Jaipur, Rajasthan</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-xs">
+                            <div>
+                                <span class="text-slate-400 block text-[11px]">Ensemble Confidence</span>
+                                <span id="resultConfidence" class="font-bold text-emerald-400 font-mono text-sm">96.4%</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[11px]">Annual Depletion Trend</span>
+                                <span id="resultDepletionRate" class="font-bold text-rose-400 font-mono text-sm">-0.82 m/yr</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-3 rounded-xl bg-slate-800/60 border border-slate-700 text-xs text-slate-300 flex items-start gap-2">
+                            <i data-lucide="info" class="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0"></i>
+                            <span id="resultAlertText">CRITICAL ALERT: Annual groundwater withdrawal exceeds net annual recharge capacity!</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-slate-200">Subsurface Aquifer Water Table Visualizer</span>
+                            <span class="text-[10px] text-slate-400 font-mono">Scale: 0 - 60 mbgl</span>
+                        </div>
+
+                        <div class="water-tank-container">
+                            <div class="ground-surface-header">
+                                <span>Ground Surface (0.0 mbgl)</span>
+                                <span>Soil Layer</span>
+                            </div>
+                            <div class="depth-ruler">
+                                <span>0m</span>
+                                <span>15m</span>
+                                <span>30m</span>
+                                <span>45m</span>
+                                <span>60m</span>
+                            </div>
+                            <div id="waterColumn" class="water-column" style="height: 45%;">
+                                <div class="water-wave"></div>
+                                <div class="water-bubble" style="left: 20%; width: 6px; height: 6px; animation-duration: 3s;"></div>
+                                <div class="water-bubble" style="left: 55%; width: 8px; height: 8px; animation-duration: 4.5s; animation-delay: 1s;"></div>
+                                <div class="water-bubble" style="left: 80%; width: 5px; height: 5px; animation-duration: 3.8s; animation-delay: 2s;"></div>
+                            </div>
+                            <div id="waterLevelMarker" class="absolute left-12 z-20 bg-cyan-900/90 text-cyan-200 font-mono text-[11px] font-bold px-2 py-0.5 rounded shadow border border-cyan-400/50" style="bottom: calc(45% - 10px);">
+                                28.45 mbgl (Water Table)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                                <i data-lucide="check-square" class="w-4 h-4 text-cyan-400"></i> AI Actionable Interventions
+                            </h4>
+                            <span class="text-[10px] text-slate-400 font-mono">Panchayat & Policy Tier</span>
+                        </div>
+                        <div id="recommendationsList" class="space-y-2">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Geospatial Aquifer GIS & Sensor Network -->
+    <section id="gis-map" class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+                <div>
+                    <span class="text-xs font-extrabold uppercase tracking-widest text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-800/60">
+                        Geospatial Telemetry Explorer
+                    </span>
+                    <h2 class="text-3xl font-extrabold text-white mt-3">Interactive National Aquifer Map</h2>
+                    <p class="text-slate-400 text-sm mt-1">
+                        Click on active DWLR telemetry nodes across India to inspect real-time borehole water depth, depletion rate, and electrical conductivity.
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button data-filter="all" class="map-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500 text-white transition">
+                        All Nodes
+                    </button>
+                    <button data-filter="over-exploited" class="map-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+                        🔴 Over-Exploited
+                    </button>
+                    <button data-filter="critical" class="map-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+                        🟠 Critical
+                    </button>
+                    <button data-filter="semi-critical" class="map-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+                        🟡 Semi-Critical
+                    </button>
+                    <button data-filter="safe" class="map-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+                        🟢 Safe
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-4 border border-slate-800 relative overflow-hidden">
+                <div id="aquiferMap" class="w-full h-[520px] rounded-xl z-10"></div>
+                <div class="absolute bottom-6 right-6 z-20 bg-slate-900/90 backdrop-blur-md p-3 rounded-xl border border-slate-800 text-xs space-y-1.5 shadow-xl hidden sm:block">
+                    <span class="font-bold text-slate-200 block text-[11px] mb-1">Aquifer Category Legend</span>
+                    <div class="flex items-center gap-2 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#f43f5e]"></span> Over-Exploited (&gt;30m / &gt;130%)</div>
+                    <div class="flex items-center gap-2 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#f97316]"></span> Critical (20-30m / 100-130%)</div>
+                    <div class="flex items-center gap-2 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span> Semi-Critical (10-20m / 70-100%)</div>
+                    <div class="flex items-center gap-2 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span> Safe (&lt;10m / &lt;70%)</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Hydrograph Analytics & Visualizations -->
+    <section id="analytics" class="py-20 bg-slate-900/40 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-extrabold uppercase tracking-widest text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-800/60">
+                    Hydrological Analytics Suite
+                </span>
+                <h2 class="text-3xl font-extrabold text-white mt-4">Long-Term Hydrographs & Scenario Forecasts</h2>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">
+                    Explore decadal groundwater fluctuation patterns, monsoon lag response, 5-year intervention forecasts, and state-wise extraction stages.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-white">10-Year Decadal Hydrograph (2016–2025)</h3>
+                            <p class="text-xs text-slate-400">Pre-Monsoon vs Post-Monsoon Depth Trends across Northern Plains</p>
+                        </div>
+                        <span class="text-[10px] text-rose-400 font-mono bg-rose-950/50 px-2 py-0.5 rounded border border-rose-800">
+                            -0.52 m/yr Avg
+                        </span>
+                    </div>
+                    <div class="h-64 sm:h-72 w-full pt-2">
+                        <canvas id="hydrographChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Monthly Rainfall vs Water Table Fluctuation</h3>
+                            <p class="text-xs text-slate-400">Infiltration Lag Analysis (Rainfall Peak vs Recharge Response)</p>
+                        </div>
+                        <span class="text-[10px] text-cyan-400 font-mono bg-cyan-950/50 px-2 py-0.5 rounded border border-cyan-800">
+                            Lag: ~30 Days
+                        </span>
+                    </div>
+                    <div class="h-64 sm:h-72 w-full pt-2">
+                        <canvas id="seasonalChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-white">5-Year Predictive Horizon (2026–2030)</h3>
+                            <p class="text-xs text-slate-400">Status Quo Depletion vs AI-Guided Smart Recharge Interventions</p>
+                        </div>
+                        <span class="text-[10px] text-emerald-400 font-mono bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-800">
+                            +8.4m Recovery
+                        </span>
+                    </div>
+                    <div class="h-64 sm:h-72 w-full pt-2">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-white">State-wise Stage of Groundwater Extraction</h3>
+                            <p class="text-xs text-slate-400">Annual Draft vs Net Annual Extractable Groundwater Availability (%)</p>
+                        </div>
+                        <span class="text-[10px] text-amber-400 font-mono bg-amber-950/50 px-2 py-0.5 rounded border border-amber-800">
+                            Threshold: 100%
+                        </span>
+                    </div>
+                    <div class="h-64 sm:h-72 w-full pt-2">
+                        <canvas id="stateBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Real-Time DWLR IoT Telemetry Stream Simulator -->
+    <section id="telemetry-simulator" class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-extrabold uppercase tracking-widest text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-800/60">
+                    IoT Telemetry Ingestion Engine
+                </span>
+                <h2 class="text-3xl font-extrabold text-white mt-4">Real-Time DWLR Sensor Telemetry Stream</h2>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">
+                    Simulates real-time 4G/NB-IoT telemetry packets emitted from Digital Water Level Recorders installed in borewells across India.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div class="lg:col-span-5 glass-card p-6 rounded-2xl border border-cyan-500/30 space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <span class="text-xs text-slate-400">Active Sensor Node</span>
+                            <h3 id="simStationName" class="text-lg font-bold text-white">Jaipur Central Aquifer Node</h3>
+                            <span id="simStationId" class="text-xs font-mono text-cyan-400">DWLR-RJ-042</span>
+                        </div>
+                        <span id="simCategoryBadge" class="px-2.5 py-1 rounded-full text-xs font-bold uppercase badge-overexploited">
+                            Over-Exploited
+                        </span>
+                    </div>
+
+                    <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                        <div class="text-xs text-slate-400">Live Groundwater Table Depth</div>
+                        <div class="flex items-baseline gap-2 mt-1">
+                            <span id="simDepth" class="text-4xl font-black text-cyan-400 font-mono">31.45 m</span>
+                            <span class="text-xs text-slate-500">mbgl</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-slate-400 mt-2">
+                            <span class="pulse-indicator bg-emerald-400"></span>
+                            <span>Sensor Online &bull; Sampling Rate: 15s</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <span class="text-[11px] text-slate-400 block">Battery Level</span>
+                            <span id="simBattery" class="text-base font-bold text-emerald-400 font-mono">94%</span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <span class="text-[11px] text-slate-400 block">Water Temp</span>
+                            <span id="simTemp" class="text-base font-bold text-slate-200 font-mono">24.2°C</span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <span class="text-[11px] text-slate-400 block">Conductivity</span>
+                            <span id="simEC" class="text-base font-bold text-cyan-300 font-mono">1,250 &mu;S</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <span class="text-xs font-semibold text-slate-300 block mb-2">Simulate Real-time Events:</span>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button id="btnSimFlood" class="px-3 py-2 bg-blue-900/50 hover:bg-blue-800/50 text-cyan-300 border border-blue-700/50 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-1.5">
+                                <i data-lucide="cloud-lightning" class="w-3.5 h-3.5"></i> Flash Monsoon (+1.8m)
+                            </button>
+                            <button id="btnSimDrought" class="px-3 py-2 bg-rose-900/50 hover:bg-rose-800/50 text-rose-300 border border-rose-700/50 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-1.5">
+                                <i data-lucide="flame" class="w-3.5 h-3.5"></i> Severe Pumpage (-2.2m)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="terminal" class="w-4 h-4 text-cyan-400"></i> MQTT Ingestion Console Log
+                        </span>
+                        <span class="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
+                            <span class="pulse-indicator bg-emerald-400"></span> Broker: Connected
+                        </span>
+                    </div>
+
+                    <div class="terminal-window">
+                        <div class="terminal-header">
+                            <span class="terminal-dot bg-rose-500"></span>
+                            <span class="terminal-dot bg-amber-500"></span>
+                            <span class="terminal-dot bg-emerald-500"></span>
+                            <span class="text-[11px] text-slate-400 font-mono ml-2">dwlr_mqtt_stream_ingest.py &mdash; 8883/TLS</span>
+                        </div>
+                        <div id="telemetryLogs" class="terminal-body space-y-1">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
+                        <span>Protocol: MQTT v5.0 / TLS 1.3</span>
+                        <span>Payload: JSON / CBOR Encoded</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 6: System Architecture & ML Pipeline -->
+    <section id="architecture" class="py-20 bg-slate-900/40 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-extrabold uppercase tracking-widest text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-800/60">
+                    Technical Design & Data Engineering
+                </span>
+                <h2 class="text-3xl font-extrabold text-white mt-4">System Architecture & ML Pipeline</h2>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">
+                    End-to-end multi-modal data fusion pipeline combining remote sensing, edge IoT, deep learning time-series models, and microservices.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-3 relative">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-cyan-400 flex items-center justify-center font-bold font-mono">
+                        01
+                    </div>
+                    <h3 class="text-base font-bold text-white">Multi-Source Ingestion</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Continuous ingestion from 4 primary channels:
+                    </p>
+                    <ul class="text-xs text-slate-400 space-y-1.5">
+                        <li>&bull; CGWB DWLR Telemetry (15-min)</li>
+                        <li>&bull; NASA GRACE Gravity Anomalies</li>
+                        <li>&bull; Sentinel-2 Surface Moisture</li>
+                        <li>&bull; IMD 0.25&deg; Gridded Rainfall</li>
+                    </ul>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-3 relative">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold font-mono">
+                        02
+                    </div>
+                    <h3 class="text-base font-bold text-white">Spatial Interpolation & ETL</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Data cleaning, noise reduction & imputation:
+                    </p>
+                    <ul class="text-xs text-slate-400 space-y-1.5">
+                        <li>&bull; Extended Kalman Filtering</li>
+                        <li>&bull; Universal Kriging Interpolation</li>
+                        <li>&bull; Soil Moisture Index (NDVI/NDWI)</li>
+                        <li>&bull; Seasonal De-trending</li>
+                    </ul>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl border border-cyan-500/40 bg-gradient-to-b from-cyan-950/20 to-transparent space-y-3 relative">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold font-mono">
+                        03
+                    </div>
+                    <h3 class="text-base font-bold text-white">Hybrid ML Ensemble</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Deep learning & gradient-boosted forecasting:
+                    </p>
+                    <ul class="text-xs text-slate-300 space-y-1.5">
+                        <li>&bull; Temporal Fusion Transformer (TFT)</li>
+                        <li>&bull; Multi-Layer Bi-LSTM with Attention</li>
+                        <li>&bull; XGBoost Spatial Regressor</li>
+                        <li>&bull; Monte Carlo Uncertainty Bounds</li>
+                    </ul>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-3 relative">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold font-mono">
+                        04
+                    </div>
+                    <h3 class="text-base font-bold text-white">Decision Support Systems</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Actionable delivery to stakeholders:
+                    </p>
+                    <ul class="text-xs text-slate-400 space-y-1.5">
+                        <li>&bull; Jal Shakti Policy Dashboard</li>
+                        <li>&bull; Bilingual Farmer Crop SMS Advisory</li>
+                        <li>&bull; Artificial Recharge Site Ranking</li>
+                        <li>&bull; CGWA Licensing Alerts</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-2xl border border-slate-800 mt-10">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 text-center">Engineered With Open Source & Enterprise Technologies</h4>
+                <div class="flex flex-wrap items-center justify-center gap-3">
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs font-mono text-cyan-300">PyTorch 2.4</span>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs font-mono text-cyan-300">Temporal Fusion Transformer</span>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs font-mono text-cyan-300">XGBoost</span>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs font-mono text-cyan-300">FastAPI</span>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs font-mono text-cyan-300">PostgreSQL / PostGIS</span>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs font-mono text-cyan-300">Leaflet.js & MapLibre</span>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs font-mono text-cyan-300">Chart.js</span>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs font-mono text-cyan-300">MQTT Broker (EMQX)</span>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs font-mono text-cyan-300">Docker & Kubernetes</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 7: UN SDGs & Sustainable Impact -->
+    <section class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-extrabold uppercase tracking-widest text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-800/60">
+                    Sustainable Development Goals
+                </span>
+                <h2 class="text-3xl font-extrabold text-white mt-4">Direct Alignment with UN SDGs</h2>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">
+                    How AquaPredict accelerates India's commitment to the United Nations 2030 Sustainable Agenda.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="glass-card p-6 rounded-2xl border border-cyan-500/30 space-y-3 glass-card-hover">
+                    <div class="text-2xl font-black text-cyan-400 font-mono">SDG 6</div>
+                    <h3 class="text-base font-bold text-white">Clean Water & Sanitation</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Target 6.4: Increase water-use efficiency across all sectors and ensure sustainable withdrawals to substantially reduce the number of people suffering from water scarcity.
+                    </p>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-emerald-500/30 space-y-3 glass-card-hover">
+                    <div class="text-2xl font-black text-emerald-400 font-mono">SDG 13</div>
+                    <h3 class="text-base font-bold text-white">Climate Action</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Target 13.1: Strengthen regional resilience and early warning systems against climate-induced drought emergencies and erratic monsoon patterns.
+                    </p>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-amber-500/30 space-y-3 glass-card-hover">
+                    <div class="text-2xl font-black text-amber-400 font-mono">SDG 2</div>
+                    <h3 class="text-base font-bold text-white">Zero Hunger</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Target 2.4: Ensure sustainable food production systems through precision water-budgeted irrigation and drought-resistant crop advisories.
+                    </p>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-indigo-500/30 space-y-3 glass-card-hover">
+                    <div class="text-2xl font-black text-indigo-400 font-mono">SDG 9</div>
+                    <h3 class="text-base font-bold text-white">Industry & Innovation</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Target 9.5: Upgrade telemetric sensor infrastructure and introduce cutting-edge AI governance tools for national hydrological engineering.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 8: SIH Hackathon Team Roster -->
+    <section id="team" class="py-20 bg-slate-900/40 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-extrabold uppercase tracking-widest text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-800/60">
+                    Smart India Hackathon Team Dossier
+                </span>
+                <h2 class="text-3xl font-extrabold text-white mt-4">Team HydroMind AI</h2>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">
+                    The multidisciplinary engineering, data science, and hydrogeology team behind AquaPredict.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3 glass-card-hover">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-lg">
+                            AS
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Aarav Sharma</h3>
+                            <span class="text-xs text-cyan-400 font-medium">Team Lead & AI/ML Engineer</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        Architect of Temporal Fusion Transformer (TFT) & LSTM PyTorch Models for Hydro-Forecasting and uncertainty quantification.
+                    </p>
+                    <div class="flex items-center gap-2 pt-2 border-t border-slate-800 text-xs text-slate-400">
+                        <i data-lucide="github" class="w-3.5 h-3.5"></i> @aarav-ai
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3 glass-card-hover">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-lg">
+                            PP
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Priya Patel</h3>
+                            <span class="text-xs text-blue-400 font-medium">Full Stack & WebGIS Developer</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        Development of Leaflet/PostGIS Spatio-temporal interactive mapping, telemetry widgets, and REST API microservices.
+                    </p>
+                    <div class="flex items-center gap-2 pt-2 border-t border-slate-800 text-xs text-slate-400">
+                        <i data-lucide="github" class="w-3.5 h-3.5"></i> @priya-gis
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3 glass-card-hover">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg">
+                            RV
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Himanshu</h3>
+                            <span class="text-xs text-emerald-400 font-medium">IoT & Telemetry Systems Engineer</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        DWLR sensor interfacing, edge validation algorithms, MQTT broker pipeline, and low-power NB-IoT field transmission.
+                    </p>
+                    <div class="flex items-center gap-2 pt-2 border-t border-slate-800 text-xs text-slate-400">
+                        <i data-lucide="github" class="w-3.5 h-3.5"></i> @himanshu-iot
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3 glass-card-hover">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-lg">
+                            AI
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Ananya Iyer</h3>
+                            <span class="text-xs text-amber-400 font-medium">Data Scientist & Hydrogeologist</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        CGWB hydrological data integration, GRACE gravity anomaly ETL, aquifer lithology modeling, and validation benchmarks.
+                    </p>
+                    <div class="flex items-center gap-2 pt-2 border-t border-slate-800 text-xs text-slate-400">
+                        <i data-lucide="github" class="w-3.5 h-3.5"></i> @ananya-hydro
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3 glass-card-hover">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-lg">
+                            VM
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Vikram Malhotra</h3>
+                            <span class="text-xs text-indigo-400 font-medium">Backend & Cloud Architect</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        FastAPI microservices, Docker containerization, Redis distributed caching, and automated CI/CD deployment pipelines.
+                    </p>
+                    <div class="flex items-center gap-2 pt-2 border-t border-slate-800 text-xs text-slate-400">
+                        <i data-lucide="github" class="w-3.5 h-3.5"></i> @vikram-cloud
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3 glass-card-hover">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold text-lg">
+                            SR
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Sneha Reddy</h3>
+                            <span class="text-xs text-rose-400 font-medium">UI/UX & Policy Intelligence Lead</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        Jal Shakti policy dashboard, bilingual farmer advisory UX, accessibility design, and SDG impact metric tracker.
+                    </p>
+                    <div class="flex items-center gap-2 pt-2 border-t border-slate-800 text-xs text-slate-400">
+                        <i data-lucide="github" class="w-3.5 h-3.5"></i> @sneha-ux
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Dossier Action Box -->
+            <div class="glass-card p-8 rounded-2xl border border-cyan-500/30 mt-12 text-center max-w-2xl mx-auto space-y-4">
+                <div class="w-12 h-12 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center mx-auto">
+                    <i data-lucide="file-text" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white">Generate Official SIH Project Dossier</h3>
+                <p class="text-xs text-slate-300">
+                    Export a clean, fully formatted PDF dossier including the project abstract, system architecture, CGWB benchmarking datasets, and predictive evaluation reports.
+                </p>
+                <button onclick="window.printSIHReport()" class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/25 transition inline-flex items-center gap-2">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Export / Print Complete Dossier (PDF)
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800/80 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white">
+                        <i data-lucide="droplets" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-white text-base tracking-tight">AQUA-PREDICT</span>
+                        <p class="text-xs text-slate-500">Smart India Hackathon Project &bull; Ministry of Jal Shakti</p>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-400 text-center md:text-right">
+                    <p>Designed for national groundwater security, aquifer sustainability & precision irrigation governance.</p>
+                    <p class="text-slate-500 mt-1">&copy; 2024&ndash;2026 Team HydroMind AI. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- App Logic Scripts -->
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

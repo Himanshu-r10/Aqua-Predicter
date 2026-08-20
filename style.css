@@ -1,0 +1,260 @@
+/* AquaPredict Custom Styles & Hydrological UI Animations */
+:root {
+    --primary-blue: #0284c7;
+    --primary-dark: #075985;
+    --accent-cyan: #06b6d4;
+    --water-gradient: linear-gradient(180deg, rgba(6, 182, 212, 0.6) 0%, rgba(2, 132, 199, 0.9) 100%);
+    --bg-dark: #0b1120;
+    --card-dark: #131d33;
+    --border-dark: rgba(255, 255, 255, 0.08);
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #080e1a;
+    color: #e2e8f0;
+    overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0b1120;
+}
+::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #0284c7;
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+    background: rgba(19, 29, 51, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.glass-card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-card-hover:hover {
+    transform: translateY(-3px);
+    border-color: rgba(6, 182, 212, 0.3);
+    box-shadow: 0 15px 35px -10px rgba(6, 182, 212, 0.15);
+}
+
+/* Glow effects */
+.cyan-glow {
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.25);
+}
+.emerald-glow {
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+}
+.rose-glow {
+    box-shadow: 0 0 25px rgba(244, 63, 94, 0.25);
+}
+
+/* Water Level Simulator Tank Visualizer */
+.water-tank-container {
+    position: relative;
+    width: 100%;
+    height: 340px;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border: 2px solid #334155;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.ground-surface-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 28px;
+    background: linear-gradient(90deg, #854d0e 0%, #713f12 100%);
+    border-bottom: 2px solid #a16207;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fef08a;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.depth-ruler {
+    position: absolute;
+    left: 10px;
+    top: 35px;
+    bottom: 15px;
+    width: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #94a3b8;
+    z-index: 15;
+    font-family: monospace;
+    pointer-events: none;
+    border-right: 1px dashed rgba(255, 255, 255, 0.2);
+    padding-right: 4px;
+}
+
+.water-column {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, rgba(56, 189, 248, 0.85) 0%, rgba(2, 132, 199, 0.95) 40%, rgba(14, 116, 144, 0.98) 100%);
+    transition: height 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 5;
+    border-top: 3px solid #7dd3fc;
+}
+
+.water-wave {
+    position: absolute;
+    top: -12px;
+    left: 0;
+    width: 200%;
+    height: 14px;
+    background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 C150,90 350,-40 500,60 C650,160 900,10 1200,40 L1200,120 L0,120 Z" fill="%2338bdf8" opacity="0.6"></path></svg>');
+    background-size: 600px 14px;
+    animation: waveAnimation 8s linear infinite;
+}
+
+@keyframes waveAnimation {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+.water-bubble {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    animation: bubbleRise 4s infinite ease-in;
+}
+
+@keyframes bubbleRise {
+    0% { bottom: 0; opacity: 0; transform: scale(0.3); }
+    50% { opacity: 0.8; }
+    100% { bottom: 100%; opacity: 0; transform: scale(1.2); }
+}
+
+/* Status indicator pulse */
+.pulse-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    position: relative;
+}
+.pulse-indicator::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 50%;
+    background: inherit;
+    animation: pulseRing 1.8s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+@keyframes pulseRing {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    100% { transform: scale(2.4); opacity: 0; }
+}
+
+/* Category Badge Colors */
+.badge-safe { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-semi { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-critical { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
+.badge-overexploited { background: rgba(244, 63, 94, 0.15); color: #f87171; border: 1px solid rgba(244, 63, 94, 0.3); }
+
+/* Live Telemetry Terminal */
+.terminal-window {
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    color: #38bdf8;
+    overflow: hidden;
+}
+.terminal-header {
+    background: #0f172a;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid #1e293b;
+}
+.terminal-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+.terminal-body {
+    padding: 12px;
+    height: 220px;
+    overflow-y: auto;
+    line-height: 1.6;
+}
+
+/* Leaflet Map Custom Marker Styles */
+.leaflet-popup-content-wrapper {
+    background: #0f172a !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #334155 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7) !important;
+}
+.leaflet-popup-tip {
+    background: #0f172a !important;
+}
+.custom-map-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.custom-map-marker:hover {
+    transform: scale(1.25);
+    z-index: 1000 !important;
+}
+
+/* Print Styles for SIH Report Export */
+@media print {
+    body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+    }
+    .no-print, nav, #hero-particles, #telemetry-simulator, footer, button {
+        display: none !important;
+    }
+    .glass-card {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        color: #0f172a !important;
+    }
+    .print-only {
+        display: block !important;
+    }
+}
